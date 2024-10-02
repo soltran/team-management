@@ -1,8 +1,14 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { createStyleSheet, useStyles } from "react-native-unistyles";
+import RadioButton from "../components/RadioButton";
 
 export default function AddPage() {
   const [firstName, setFirstName] = useState("");
@@ -41,7 +47,11 @@ export default function AddPage() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Add a team member</Text>
+      <Text style={styles.subtitle}>Set email, location and role.</Text>
+
+      <Text style={styles.sectionTitle}>Info</Text>
       <TextInput
         style={styles.input}
         placeholder="First Name"
@@ -56,30 +66,39 @@ export default function AddPage() {
       />
       <TextInput
         style={styles.input}
-        placeholder="Phone Number"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
-      />
-      <TextInput
-        style={styles.input}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
       />
-      <Picker
-        selectedValue={role}
-        style={styles.picker}
-        onValueChange={(itemValue) => setRole(itemValue)}
-      >
-        <Picker.Item label="Regular" value="regular" />
-        <Picker.Item label="Admin" value="admin" />
-      </Picker>
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>Save</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Phone Number"
+        value={phoneNumber}
+        onChangeText={setPhoneNumber}
+        keyboardType="phone-pad"
+      />
+
+      <Text style={styles.sectionTitle}>Role</Text>
+      <View style={styles.radioGroup}>
+        <RadioButton
+          label="Regular - Can't delete members"
+          value="regular"
+          selectedValue={role}
+          onSelect={setRole}
+        />
+        <RadioButton
+          label="Admin - Can delete members"
+          value="admin"
+          selectedValue={role}
+          onSelect={setRole}
+        />
+      </View>
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -87,25 +106,46 @@ const stylesheet = createStyleSheet({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: "#f0f0f0",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 16,
+    marginBottom: 8,
   },
   input: {
     height: 40,
-    borderColor: "gray",
+    borderColor: "#ccc",
     borderWidth: 1,
+    borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 8,
+    backgroundColor: "white",
   },
-  picker: {
-    height: 40,
+  radioGroup: {
     marginBottom: 16,
   },
-  button: {
-    backgroundColor: "blue",
-    padding: 12,
+  saveButton: {
+    backgroundColor: "#007AFF",
+    padding: 16,
+    borderRadius: 8,
     alignItems: "center",
+    marginTop: 24,
   },
-  buttonText: {
+  saveButtonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

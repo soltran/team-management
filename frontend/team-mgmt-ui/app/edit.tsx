@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { createStyleSheet, useStyles } from "react-native-unistyles";
+import RadioButton from "../components/RadioButton";
 
 export default function EditPage() {
   const [firstName, setFirstName] = useState("");
@@ -72,12 +79,9 @@ export default function EditPage() {
 
   const confirmDelete = async () => {
     try {
-      const response = await fetch(
-        `http://your-api-url/api/team-members/${id}/`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`${apiUrl}/api/team-members/${id}/`, {
+        method: "DELETE",
+      });
 
       if (response.ok) {
         router.replace("/");
@@ -90,7 +94,11 @@ export default function EditPage() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Edit team member</Text>
+      <Text style={styles.subtitle}>Edit contact info, location and role.</Text>
+
+      <Text style={styles.sectionTitle}>Info</Text>
       <TextInput
         style={styles.input}
         placeholder="First Name"
@@ -105,33 +113,43 @@ export default function EditPage() {
       />
       <TextInput
         style={styles.input}
-        placeholder="Phone Number"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
-      />
-      <TextInput
-        style={styles.input}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
       />
-      <Picker
-        selectedValue={role}
-        style={styles.picker}
-        onValueChange={(itemValue) => setRole(itemValue)}
-      >
-        <Picker.Item label="Regular" value="regular" />
-        <Picker.Item label="Admin" value="admin" />
-      </Picker>
+      <TextInput
+        style={styles.input}
+        placeholder="Phone Number"
+        value={phoneNumber}
+        onChangeText={setPhoneNumber}
+        keyboardType="phone-pad"
+      />
+
+      <Text style={styles.sectionTitle}>Role</Text>
+      <View style={styles.radioGroup}>
+        <RadioButton
+          label="Regular - Can't delete members"
+          value="regular"
+          selectedValue={role}
+          onSelect={setRole}
+        />
+        <RadioButton
+          label="Admin - Can delete members"
+          value="admin"
+          selectedValue={role}
+          onSelect={setRole}
+        />
+      </View>
+
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.buttonText}>Save</Text>
+        <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
+
       <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.buttonText}>Delete</Text>
+        <Text style={styles.deleteButtonText}>Delete</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -139,31 +157,60 @@ const stylesheet = createStyleSheet({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: "#f0f0f0",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 16,
+    marginBottom: 8,
   },
   input: {
     height: 40,
-    borderColor: "gray",
+    borderColor: "#ccc",
     borderWidth: 1,
+    borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 8,
+    backgroundColor: "white",
   },
-  picker: {
-    height: 40,
+  radioGroup: {
     marginBottom: 16,
   },
   saveButton: {
-    backgroundColor: "blue",
-    padding: 12,
+    backgroundColor: "#007AFF",
+    padding: 16,
+    borderRadius: 8,
     alignItems: "center",
-    marginBottom: 16,
+    marginTop: 24,
+  },
+  saveButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   deleteButton: {
-    backgroundColor: "red",
-    padding: 12,
+    backgroundColor: "white",
+    padding: 16,
+    borderRadius: 8,
     alignItems: "center",
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: "#FF3B30",
   },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
+  deleteButtonText: {
+    color: "#FF3B30",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
