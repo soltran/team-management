@@ -211,12 +211,17 @@ The backend API will be available at `http://localhost:8000/api/`.
    npx expo start
    ```
 
-5. Login with the following credentials:
+5. Login with the following credentials to see all users across all companies:
 
    - Username: `admin`
    - Password: `adminpass`
 
-6. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator.
+6. Login with the following credentials to see only users in your company:
+
+   - Username: `instawork_admin`
+   - Password: `password`
+
+7. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator.
 
 **NOTE: Right now, only the web version is working. iOS and Android versions are coming soon.**
 
