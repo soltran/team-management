@@ -30,6 +30,10 @@ The application allows users to manage team members with functionalities to:
 - **Edit Team Members:** Update existing team member details.
 - **Delete Team Members:** Remove team members from the list.
 
+Here's a screenshot of the main screen:
+
+![Team Members List](screenshots/team-members-list.png)
+
 ---
 
 ## Technologies Used
