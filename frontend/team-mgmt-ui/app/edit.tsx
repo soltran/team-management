@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,158 +6,214 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Platform,
+  Modal,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { createStyleSheet, useStyles } from "react-native-unistyles";
 import RadioButton from "../components/RadioButton";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  fetchTeamMember,
+  updateTeamMember,
+  deleteTeamMember,
+} from "../src/services/api";
+import { z } from "zod";
+
+const teamMemberSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  phone_number: z.string().min(10, "Invalid phone number"),
+  email: z.string().email("Invalid email address"),
+  role: z.enum(["regular", "admin"]),
+});
 
 export default function EditPage() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("regular");
+  const [teamMember, setTeamMember] = useState({
+    first_name: "",
+    last_name: "",
+    phone_number: "",
+    email: "",
+    role: "regular" as "regular" | "admin",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { styles } = useStyles(stylesheet);
-  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
-    fetchTeamMember();
+    fetchTeamMemberData();
   }, []);
 
-  const fetchTeamMember = async () => {
+  const fetchTeamMemberData = useCallback(async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/team-members/${id}/`);
-      const data = await response.json();
-      setFirstName(data.first_name);
-      setLastName(data.last_name);
-      setPhoneNumber(data.phone_number);
-      setEmail(data.email);
-      setRole(data.role);
+      const data = await fetchTeamMember(id as string);
+      setTeamMember(data);
     } catch (error) {
       console.error("Error fetching team member:", error);
+      Alert.alert("Error", "Failed to fetch team member data");
     }
+  }, [id]);
+
+  const handleInputChange = (field: keyof typeof teamMember, value: string) => {
+    setTeamMember((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/team-members/${id}/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          phone_number: phoneNumber,
-          email,
-          role,
-        }),
-      });
-
-      if (response.ok) {
-        router.replace("/");
-      } else {
-        console.error("Error updating team member");
-      }
+      const validatedData = teamMemberSchema.parse(teamMember);
+      await updateTeamMember(id as string, validatedData);
+      router.replace("/");
     } catch (error) {
-      console.error("Error updating team member:", error);
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          newErrors[err.path[0]] = err.message;
+        });
+        setErrors(newErrors);
+      } else {
+        console.error("Error updating team member:", error);
+        Alert.alert("Error", "Failed to update team member");
+      }
     }
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      "Delete Team Member",
-      "Are you sure you want to delete this team member?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: confirmDelete },
-      ]
-    );
+    if (Platform.OS === "web") {
+      setIsDeleteModalVisible(true);
+    } else {
+      Alert.alert(
+        "Delete Team Member",
+        "Are you sure you want to delete this team member?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Delete", style: "destructive", onPress: confirmDelete },
+        ]
+      );
+    }
   };
 
   const confirmDelete = async () => {
     try {
-      const response = await fetch(`${apiUrl}/api/team-members/${id}/`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        router.replace("/");
-      } else {
-        console.error("Error deleting team member");
-      }
+      await deleteTeamMember(id as string);
+      router.replace("/");
     } catch (error) {
       console.error("Error deleting team member:", error);
+      if (Platform.OS === "web") {
+        alert("Failed to delete team member");
+      } else {
+        Alert.alert("Error", "Failed to delete team member");
+      }
+    } finally {
+      setIsDeleteModalVisible(false);
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Edit team member</Text>
-      <Text style={styles.subtitle}>Edit contact info, location and role.</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>Edit team member</Text>
+        <Text style={styles.subtitle}>
+          Edit contact info, location and role.
+        </Text>
 
-      <Text style={styles.sectionTitle}>Info</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="First Name"
-        value={firstName}
-        onChangeText={setFirstName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Last Name"
-        value={lastName}
-        onChangeText={setLastName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
-      />
+        <Text style={styles.sectionTitle}>Info</Text>
+        {["first_name", "last_name", "email", "phone_number"].map((field) => (
+          <View key={field}>
+            <TextInput
+              style={styles.input}
+              placeholder={field
+                .split("_")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")}
+              value={teamMember[field as keyof typeof teamMember]}
+              onChangeText={(value) =>
+                handleInputChange(field as keyof typeof teamMember, value)
+              }
+              keyboardType={
+                field === "email"
+                  ? "email-address"
+                  : field === "phone_number"
+                  ? "phone-pad"
+                  : "default"
+              }
+            />
+            {errors[field] && (
+              <Text style={styles.errorText}>{errors[field]}</Text>
+            )}
+          </View>
+        ))}
 
-      <Text style={styles.sectionTitle}>Role</Text>
-      <View style={styles.radioGroup}>
-        <RadioButton
-          label="Regular - Can't delete members"
-          value="regular"
-          selectedValue={role}
-          onSelect={setRole}
-        />
-        <RadioButton
-          label="Admin - Can delete members"
-          value="admin"
-          selectedValue={role}
-          onSelect={setRole}
-        />
-      </View>
+        <Text style={styles.sectionTitle}>Role</Text>
+        <View style={styles.radioGroup}>
+          {["regular", "admin"].map((roleOption) => (
+            <RadioButton
+              key={roleOption}
+              label={`${
+                roleOption.charAt(0).toUpperCase() + roleOption.slice(1)
+              } - ${
+                roleOption === "regular"
+                  ? "Can't delete members"
+                  : "Can delete members"
+              }`}
+              value={roleOption}
+              selectedValue={teamMember.role}
+              onSelect={(value) => handleInputChange("role", value)}
+            />
+          ))}
+        </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Save</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-        <Text style={styles.deleteButtonText}>Delete</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+
+        {Platform.OS === "web" && (
+          <Modal
+            visible={isDeleteModalVisible}
+            transparent={true}
+            animationType="fade"
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalText}>
+                  Are you sure you want to delete this team member?
+                </Text>
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setIsDeleteModalVisible(false)}
+                  >
+                    <Text style={styles.modalButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.deleteButton]}
+                    onPress={confirmDelete}
+                  >
+                    <Text style={styles.modalButtonText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const stylesheet = createStyleSheet({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: "#f0f0f0",
+  },
+  scrollContent: {
+    padding: 16,
   },
   title: {
     fontSize: 24,
@@ -184,6 +240,15 @@ const stylesheet = createStyleSheet({
     paddingHorizontal: 8,
     backgroundColor: "white",
   },
+  inputError: {
+    borderColor: "#FF3B30",
+  },
+  errorText: {
+    color: "#FF3B30",
+    fontSize: 12,
+    marginTop: -12,
+    marginBottom: 8,
+  },
   radioGroup: {
     marginBottom: 16,
   },
@@ -200,7 +265,7 @@ const stylesheet = createStyleSheet({
     fontWeight: "bold",
   },
   deleteButton: {
-    backgroundColor: "white",
+    backgroundColor: "red",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
@@ -209,8 +274,55 @@ const stylesheet = createStyleSheet({
     borderColor: "#FF3B30",
   },
   deleteButtonText: {
-    color: "#FF3B30",
+    color: "white",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+    fontSize: 18,
+    color: "#666",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  modalButton: {
+    borderRadius: 8,
+    padding: 10,
+    elevation: 2,
+    minWidth: 100,
+  },
+  cancelButton: {
+    backgroundColor: "#007AFF",
+    padding: 16,
+    marginTop: 16,
+  },
+  modalButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });

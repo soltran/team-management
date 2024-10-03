@@ -1,8 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { createStyleSheet, useStyles } from "react-native-unistyles";
+import {
+  createStyleSheet,
+  UnistylesRuntime,
+  useInitialTheme,
+  useStyles,
+} from "react-native-unistyles";
+import "../unistyles";
+import { useAuth } from "../src/contexts/AuthContext";
+import * as api from "../src/services/api";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface TeamMember {
   id: number;
@@ -18,22 +29,29 @@ export default function ListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  useInitialTheme(UnistylesRuntime.colorScheme === "dark" ? "dark" : "light");
+
   const { styles } = useStyles(stylesheet);
+  const { user, signOut } = useAuth();
 
-  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-
-  useEffect(() => {
-    fetchTeamMembers();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        fetchTeamMembers();
+      } else {
+        // Use a timeout to ensure navigation happens after layout is mounted
+        const timer = setTimeout(() => {
+          router.replace("/login");
+        }, 0);
+        return () => clearTimeout(timer);
+      }
+    }, [user])
+  );
 
   const fetchTeamMembers = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${apiUrl}/api/team-members/`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await api.fetchTeamMembers();
       setTeamMembers(data);
       setError(null);
     } catch (error) {
@@ -44,26 +62,38 @@ export default function ListPage() {
     }
   };
 
-  const renderItem = ({ item }: { item: TeamMember }) => (
-    <TouchableOpacity
-      style={styles.item}
-      onPress={() =>
-        router.push({ pathname: "/edit", params: { id: item.id } })
-      }
-    >
-      <Image
-        source={{ uri: "https://via.placeholder.com/40" }}
-        style={styles.avatar}
-      />
-      <View style={styles.itemContent}>
-        <Text style={styles.name}>
-          {item.first_name} {item.last_name}
-          {item.role === "admin" && <Text style={styles.admin}> (admin)</Text>}
-        </Text>
-        <Text style={styles.contactInfo}>{item.phone_number}</Text>
-        <Text style={styles.contactInfo}>{item.email}</Text>
-      </View>
-    </TouchableOpacity>
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace("/login");
+  };
+
+  const renderItem = useCallback(
+    ({ item }: { item: TeamMember }) => (
+      <TouchableOpacity
+        style={styles.item}
+        onPress={() =>
+          router.push({ pathname: "/edit", params: { id: item.id } })
+        }
+      >
+        <Image
+          source={{
+            uri: `https://avatar.iran.liara.run/public/boy?username=${item.first_name}`,
+          }}
+          style={styles.avatar}
+        />
+        <View style={styles.itemContent}>
+          <Text style={styles.name}>
+            {item.first_name} {item.last_name}
+            {item.role === "admin" && (
+              <Text style={styles.admin}> (admin)</Text>
+            )}
+          </Text>
+          <Text style={styles.contactInfo}>{item.phone_number}</Text>
+          <Text style={styles.contactInfo}>{item.email}</Text>
+        </View>
+      </TouchableOpacity>
+    ),
+    [styles, router]
   );
 
   if (isLoading) {
@@ -75,7 +105,7 @@ export default function ListPage() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Team members</Text>
       <Text style={styles.subtitle}>
         You have {teamMembers.length} team members.
@@ -91,7 +121,10 @@ export default function ListPage() {
           <Ionicons name="add" size={24} color="white" />
         </TouchableOpacity>
       </Link>
-    </View>
+      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
@@ -158,5 +191,17 @@ const stylesheet = createStyleSheet({
     fontSize: 18,
     textAlign: "center",
     marginTop: 50,
+  },
+  signOutButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    padding: 8,
+    backgroundColor: "#007AFF",
+    borderRadius: 8,
+  },
+  signOutText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
