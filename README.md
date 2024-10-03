@@ -262,6 +262,10 @@ The backend provides the following API endpoints:
 - [ ] Add authentication
 - [ ] Add permissions
 - [ ] Add team member avatars
+- [ ] Add deployment
+- [ ] Add CI/CD
+- [ ] Add unit tests
+- [ ] Add more features!
 
 ## Contributing
 
