@@ -13,3 +13,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone_number', 'role', 'company']
         read_only_fields = ['role']  # Role should only be changeable by admins
+        extra_kwargs = {
+            'username': {'read_only': True},  # Make username read-only for updates
+            'password': {'write_only': True}  # Ensure password is write-only
+        }

@@ -1,6 +1,10 @@
-from rest_framework import viewsets, permissions
+import logging
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
 from .models import CustomUser, Company
 from .serializers import CustomUserSerializer, CompanySerializer
+
+logger = logging.getLogger(__name__)
 
 class IsSuperuserOrCompanyAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -32,7 +36,6 @@ class CanManageCompanyUsers(permissions.BasePermission):
             # For other methods, allow read access
             return request.method in permissions.SAFE_METHODS
         
-        # Regular users can only read their own data
         return request.method in permissions.SAFE_METHODS
 
 class CustomUserViewSet(viewsets.ModelViewSet):
@@ -46,6 +49,35 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             return CustomUser.objects.all()
         else:
             return CustomUser.objects.filter(company=user.company)
+
+    def update(self, request, *args, **kwargs):
+        logger.info(f"Update request received for user {kwargs.get('pk')} by {request.user.username}")
+        logger.debug(f"Request data: {request.data}")
+        
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        
+        # For PATCH requests, always treat as partial updates
+        if request.method == 'PATCH':
+            partial = True
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        
+        if not serializer.is_valid():
+            logger.error(f"Serializer validation failed: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            self.perform_update(serializer)
+            logger.info(f"User {instance.username} updated successfully")
+            return Response(serializer.data)
+        except Exception as e:
+            logger.exception(f"Error updating user: {str(e)}")
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def perform_update(self, serializer):
+        logger.info(f"Performing update for user {serializer.instance.username}")
+        serializer.save()
 
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
