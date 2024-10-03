@@ -266,12 +266,13 @@ The backend provides the following API endpoints:
 
 - [ ] Add iOS and Android versions
 - [x] Add authentication
-- [ ] Add permissions
+- [ ] Add role based access control (only admin can add/edit/delete)
 - [x] Add team member avatars
 - [ ] Add deployment
 - [ ] Add CI/CD
 - [ ] Add unit tests
 - [ ] Add more features!
+- [ ] Improve Theming
 
 ## Contributing
 
