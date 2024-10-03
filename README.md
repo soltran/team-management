@@ -168,6 +168,7 @@ python manage.py migrate
 
 ```
 python manage.py seed_team_members
+python manage.py seed_users
 ```
 
 8. Start the Django development server:
@@ -208,7 +209,12 @@ The backend API will be available at `http://localhost:8000/api/`.
    npx expo start
    ```
 
-5. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator.
+5. Login with the following credentials:
+
+   - Username: `admin`
+   - Password: `adminpass`
+
+6. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator.
 
 **NOTE: Right now, only the web version is working. iOS and Android versions are coming soon.**
 
