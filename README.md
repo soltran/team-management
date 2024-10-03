@@ -112,7 +112,7 @@ cd team-management
 1. Navigate to the backend directory:
 
    ```
-   cd team-management/backend
+   cd team-management/django
    ```
 
 2. Create a virtual environment:
@@ -138,7 +138,12 @@ cd team-management
    pip install -r requirements.txt
    ```
 
-5. Set Up the Database\*\*
+5. Set up environment variables:
+
+   - Copy `.env.example` to `.env`
+   - Update the `SECRET_KEY` and `DEBUG` in `.env`
+
+6. Set Up the Database\*\*
 
 We use PostgreSQL running in Docker.
 
@@ -250,6 +255,13 @@ The backend provides the following API endpoints:
 - `GET /api/team-members/{id}/`: Retrieve a specific team member
 - `PUT /api/team-members/{id}/`: Update a specific team member
 - `DELETE /api/team-members/{id}/`: Delete a specific team member
+
+## Roadmap
+
+- [ ] Add iOS and Android versions
+- [ ] Add authentication
+- [ ] Add permissions
+- [ ] Add team member avatars
 
 ## Contributing
 
