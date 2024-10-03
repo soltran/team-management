@@ -1,4 +1,10 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as api from "../services/api";
 
@@ -6,13 +12,38 @@ interface AuthContextData {
   user: any;
   signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  checkAuthStatus: () => Promise<boolean>;
   //   signUp: (username: string, email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
-export const AuthProvider: React.FC = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [user, setUser] = useState<any>(null);
+
+  const checkAuthStatus = useCallback(async () => {
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      if (token) {
+        const isValid = await api.verifyToken(token);
+        if (isValid) {
+          // TODO: fetch user data
+          setUser({
+            /* user data */
+          });
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+    }
+    setUser(null);
+    return false;
+  }, []);
 
   useEffect(() => {
     loadStoredData();
@@ -45,7 +76,7 @@ export const AuthProvider: React.FC = ({ children }) => {
   //   }
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, signIn, signOut, checkAuthStatus }}>
       {children}
     </AuthContext.Provider>
   );

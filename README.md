@@ -265,9 +265,9 @@ The backend provides the following API endpoints:
 ## Roadmap
 
 - [ ] Add iOS and Android versions
-- [ ] Add authentication
+- [x] Add authentication
 - [ ] Add permissions
-- [ ] Add team member avatars
+- [x] Add team member avatars
 - [ ] Add deployment
 - [ ] Add CI/CD
 - [ ] Add unit tests

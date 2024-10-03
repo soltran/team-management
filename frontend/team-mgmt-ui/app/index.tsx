@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,8 +11,6 @@ import {
 import "../unistyles";
 import { useAuth } from "../src/contexts/AuthContext";
 import * as api from "../src/services/api";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface TeamMember {
@@ -32,23 +30,9 @@ export default function ListPage() {
   useInitialTheme(UnistylesRuntime.colorScheme === "dark" ? "dark" : "light");
 
   const { styles } = useStyles(stylesheet);
-  const { user, signOut } = useAuth();
+  const { user, signOut, checkAuthStatus } = useAuth();
 
-  useFocusEffect(
-    useCallback(() => {
-      if (user) {
-        fetchTeamMembers();
-      } else {
-        // Use a timeout to ensure navigation happens after layout is mounted
-        const timer = setTimeout(() => {
-          router.replace("/login");
-        }, 0);
-        return () => clearTimeout(timer);
-      }
-    }, [user])
-  );
-
-  const fetchTeamMembers = async () => {
+  const fetchTeamMembers = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await api.fetchTeamMembers();
@@ -60,7 +44,20 @@ export default function ListPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const isAuthenticated = await checkAuthStatus();
+      if (isAuthenticated) {
+        fetchTeamMembers();
+      } else {
+        router.replace("/login");
+      }
+    };
+
+    initializeAuth();
+  }, [checkAuthStatus, fetchTeamMembers, router]);
 
   const handleSignOut = async () => {
     await signOut();
