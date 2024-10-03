@@ -19,6 +19,7 @@ import {
   deleteTeamMember,
 } from "../src/services/api";
 import { z } from "zod";
+import { useAuth } from "../src/contexts/AuthContext";
 
 const teamMemberSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -41,6 +42,8 @@ export default function EditPage() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { styles } = useStyles(stylesheet);
+  const { user } = useAuth();
+  const isOwnProfile = user?.id === id;
 
   useEffect(() => {
     fetchTeamMemberData();
@@ -54,7 +57,7 @@ export default function EditPage() {
       console.error("Error fetching team member:", error);
       Alert.alert("Error", "Failed to fetch team member data");
     }
-  }, [id]);
+  }, [id, user]);
 
   const handleInputChange = (field: keyof typeof teamMember, value: string) => {
     setTeamMember((prev) => ({ ...prev, [field]: value }));
@@ -111,6 +114,17 @@ export default function EditPage() {
     }
   };
 
+  const canEdit =
+    user?.role === "company_admin" ||
+    user?.role === "superuser" ||
+    isOwnProfile;
+  const canDelete =
+    user?.role === "company_admin" ||
+    user?.role === "superuser" ||
+    isOwnProfile;
+  const canToggleRole =
+    user?.role === "company_admin" || user?.role === "superuser";
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -139,6 +153,7 @@ export default function EditPage() {
                   ? "phone-pad"
                   : "default"
               }
+              editable={canEdit}
             />
             {errors[field] && (
               <Text style={styles.errorText}>{errors[field]}</Text>
@@ -161,17 +176,22 @@ export default function EditPage() {
               value={roleOption}
               selectedValue={teamMember.role}
               onSelect={(value) => handleInputChange("role", value)}
+              disabled={!canToggleRole}
             />
           ))}
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
+        {canEdit && (
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Save</Text>
+          </TouchableOpacity>
+        )}
 
-        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-          <Text style={styles.deleteButtonText}>Delete</Text>
-        </TouchableOpacity>
+        {canDelete && (
+          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
+        )}
 
         {Platform.OS === "web" && (
           <Modal

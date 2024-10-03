@@ -6,6 +6,7 @@ interface RadioButtonProps {
   value: string;
   selectedValue: string;
   onSelect: (value: string) => void;
+  disabled?: boolean;
 }
 
 const RadioButton: React.FC<RadioButtonProps> = ({
@@ -13,9 +14,14 @@ const RadioButton: React.FC<RadioButtonProps> = ({
   value,
   selectedValue,
   onSelect,
+  disabled = false,
 }) => {
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onSelect(value)}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() => onSelect(value)}
+      disabled={disabled}
+    >
       <View style={styles.radioOuter}>
         {selectedValue === value && <View style={styles.radioInner} />}
       </View>

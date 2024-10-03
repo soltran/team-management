@@ -30,10 +30,9 @@ class CustomUser(AbstractUser):
         help_text='Designates that this user has all permissions without explicitly assigning them.',
     )
 
-    is_company_admin = models.BooleanField(default=False)
-
     def __str__(self):
         return f"{self.get_full_name()} ({self.company})"
 
+    @property
     def is_company_admin(self):
         return self.role == 'admin'

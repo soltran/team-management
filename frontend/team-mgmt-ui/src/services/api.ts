@@ -147,3 +147,11 @@ export const createTeamMember = async (data: any) => {
   }
   return response.json();
 };
+
+export const fetchCurrentUserRole = async () => {
+  const response = await fetchWithAuth("/api/users/current_user_role/");
+  if (!response.ok) {
+    throw new Error("Failed to fetch current user role");
+  }
+  return response.json();
+};

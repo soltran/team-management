@@ -8,12 +8,17 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as api from "../services/api";
 
+interface User {
+  id: string;
+  username: string;
+  role: "superuser" | "company_admin" | "user";
+}
+
 interface AuthContextData {
-  user: any;
+  user: User | null;
   signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   checkAuthStatus: () => Promise<boolean>;
-  //   signUp: (username: string, email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -23,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const checkAuthStatus = useCallback(async () => {
     try {
@@ -31,10 +36,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (token) {
         const isValid = await api.verifyToken(token);
         if (isValid) {
-          // TODO: fetch user data
-          setUser({
-            /* user data */
-          });
+          const userData = await api.fetchCurrentUserRole();
+          setUser(userData);
           return true;
         }
       }
@@ -57,10 +60,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }
 
   async function signIn(username: string, password: string) {
-    const response = await api.login(username, password);
-    console.log("user", response);
-    setUser(response);
-    await AsyncStorage.setItem("user", JSON.stringify(response));
+    const tokenResponse = await api.login(username, password);
+    const userData = await api.fetchCurrentUserRole();
+    setUser(userData);
+    await AsyncStorage.setItem("user", JSON.stringify(userData));
   }
 
   async function signOut() {

@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import CustomUser, Company
 from .serializers import CustomUserSerializer, CompanySerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +82,16 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         logger.info(f"Performing update for user {serializer.instance.username}")
         serializer.save()
+
+    @action(detail=False, methods=['get'])
+    def current_user_role(self, request):
+        user = request.user
+        role = 'superuser' if user.is_superuser else 'company_admin' if user.is_company_admin else 'user'
+        return Response({
+            'id': str(user.id),  # Convert to string if it's a UUID
+            'username': user.username,
+            'role': role
+        })
 
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()

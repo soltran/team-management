@@ -221,7 +221,12 @@ The backend API will be available at `http://localhost:8000/api/`.
    - Username: `instawork_admin`
    - Password: `password`
 
-7. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator.
+7. Login with the following credentials to see a regular user in your company:
+
+   - Username: `instawork_adam`
+   - Password: `password`
+
+8. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator.
 
 **NOTE: Right now, only the web version is working. iOS and Android versions are coming soon.**
 
@@ -273,7 +278,7 @@ The backend provides the following API endpoints:
 
 - [ ] Add iOS and Android versions
 - [x] Add authentication
-- [ ] Add role based access control (only admin can add/edit/delete)
+- [x] Add role based access control (only admin can add/edit/delete)
 - [x] merge users and team members
 - [x] Add team member avatars
 - [ ] Add deployment

@@ -32,6 +32,8 @@ export default function ListPage() {
   const { styles } = useStyles(stylesheet);
   const { user, signOut, checkAuthStatus } = useAuth();
 
+  console.log("user in index", user);
+
   const fetchTeamMembers = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -101,6 +103,9 @@ export default function ListPage() {
     return <Text style={styles.message}>{error}</Text>;
   }
 
+  const showAddButton =
+    user?.role === "company_admin" || user?.role === "superuser";
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Team members</Text>
@@ -113,11 +118,13 @@ export default function ListPage() {
         keyExtractor={(item) => item.id.toString()}
         style={styles.list}
       />
-      <Link href="/add" asChild>
-        <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add" size={24} color="white" />
-        </TouchableOpacity>
-      </Link>
+      {showAddButton && (
+        <Link href="/add" asChild>
+          <TouchableOpacity style={styles.addButton}>
+            <Ionicons name="add" size={24} color="white" />
+          </TouchableOpacity>
+        </Link>
+      )}
       <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
