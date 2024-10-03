@@ -44,7 +44,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_superuser:
             return CustomUser.objects.all()
-        else
+        else:
             return CustomUser.objects.filter(company=user.company)
 
 class CompanyViewSet(viewsets.ModelViewSet):
