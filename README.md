@@ -73,10 +73,11 @@ team-management/
 ├── backend/
 │   ├── manage.py
 │   ├── requirements.txt
-│   └── team_management/
-│       ├── settings.py
-│       ├── urls.py
-│       └── ...
+│   └── apps/
+│       ├── users/
+│       │   ├── models.py
+│       │   ├── views.py
+│       │   └── ...
 ├── frontend/
 │   └── team-mgmt-ui/
 │       ├── app/
@@ -161,14 +162,15 @@ Replace `your_db_password` with a secure password.
 6. Apply migrations:
 
 ```
+python manage.py makemigrations users
+python manage.py migrate users
 python manage.py migrate
 ```
 
 7. Seed the database with initial data:
 
 ```
-python manage.py seed_team_members
-python manage.py seed_users
+python manage.py setup_test_data
 ```
 
 8. Start the Django development server:
@@ -267,7 +269,7 @@ The backend provides the following API endpoints:
 - [ ] Add iOS and Android versions
 - [x] Add authentication
 - [ ] Add role based access control (only admin can add/edit/delete)
-- [ ] merge users and team members
+- [x] merge users and team members
 - [x] Add team member avatars
 - [ ] Add deployment
 - [ ] Add CI/CD

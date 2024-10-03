@@ -102,7 +102,7 @@ export const verifyToken = async (token: string): Promise<boolean> => {
 };
 
 export const fetchTeamMembers = async () => {
-  const response = await fetchWithAuth("/api/team-members/");
+  const response = await fetchWithAuth("/api/users/");
   if (!response.ok) {
     throw new Error("Failed to fetch team members");
   }
@@ -110,7 +110,7 @@ export const fetchTeamMembers = async () => {
 };
 
 export const fetchTeamMember = async (id: string) => {
-  const response = await fetchWithAuth(`/api/team-members/${id}/`);
+  const response = await fetchWithAuth(`/api/users/${id}/`);
   if (!response.ok) {
     throw new Error("Failed to fetch team member");
   }
@@ -118,7 +118,7 @@ export const fetchTeamMember = async (id: string) => {
 };
 
 export const updateTeamMember = async (id: string, data: any) => {
-  const response = await fetchWithAuth(`/api/team-members/${id}/`, {
+  const response = await fetchWithAuth(`/api/users/${id}/`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
@@ -129,7 +129,7 @@ export const updateTeamMember = async (id: string, data: any) => {
 };
 
 export const deleteTeamMember = async (id: string) => {
-  const response = await fetchWithAuth(`/api/team-members/${id}/`, {
+  const response = await fetchWithAuth(`/api/users/${id}/`, {
     method: "DELETE",
   });
   if (!response.ok) {
@@ -138,7 +138,7 @@ export const deleteTeamMember = async (id: string) => {
 };
 
 export const createTeamMember = async (data: any) => {
-  const response = await fetchWithAuth("/api/team-members/", {
+  const response = await fetchWithAuth("/api/users/", {
     method: "POST",
     body: JSON.stringify(data),
   });
