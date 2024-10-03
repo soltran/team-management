@@ -30,12 +30,6 @@ The application allows users to manage team members with functionalities to:
 - **Edit Team Members:** Update existing team member details.
 - **Delete Team Members:** Remove team members from the list.
 
-Here's a screenshots of the list, add, and edit screens:
-
-![Team Members List](screenshots/team-members-list.png)
-![Add Team Member](screenshots/add-team-member.png)
-![Edit Team Member](screenshots/edit-team-member.png)
-
 ---
 
 ## Technologies Used
@@ -293,6 +287,17 @@ The backend provides the following API endpoints:
 - [ ] Add more features!
 - [ ] Remove unistyles because it is not compatible with expo go
 - [ ] Improve Theming
+
+## Screenshots
+
+List:
+![Team Members List](screenshots/team-members-list.png)
+
+Add:
+![Add Team Member](screenshots/add-team-member.png)
+
+Edit:
+![Edit Team Member](screenshots/edit-team-member.png)
 
 ## Contributing
 
