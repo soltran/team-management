@@ -51,6 +51,11 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         else:
             return CustomUser.objects.filter(company=user.company)
 
+    def perform_create(self, serializer):
+        # Assign the new user to the same company as the requesting user
+        company = self.request.user.company
+        serializer.save(company=company)
+
     @action(detail=True, methods=['patch'])
     def update_own_profile(self, request, pk=None):
         user = self.get_object()
