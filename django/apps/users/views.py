@@ -1,6 +1,7 @@
 import logging
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from .models import CustomUser, Company
 from .serializers import CustomUserSerializer, CompanySerializer
 
@@ -50,30 +51,26 @@ class CustomUserViewSet(viewsets.ModelViewSet):
         else:
             return CustomUser.objects.filter(company=user.company)
 
+    @action(detail=True, methods=['patch'])
+    def update_own_profile(self, request, pk=None):
+        user = self.get_object()
+        if request.user != user:
+            return Response({"detail": "You can only update your own profile."}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
     def update(self, request, *args, **kwargs):
-        logger.info(f"Update request received for user {kwargs.get('pk')} by {request.user.username}")
-        logger.debug(f"Request data: {request.data}")
-        
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        
-        # For PATCH requests, always treat as partial updates
-        if request.method == 'PATCH':
-            partial = True
-        
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        
-        if not serializer.is_valid():
-            logger.error(f"Serializer validation failed: {serializer.errors}")
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            self.perform_update(serializer)
-            logger.info(f"User {instance.username} updated successfully")
-            return Response(serializer.data)
-        except Exception as e:
-            logger.exception(f"Error updating user: {str(e)}")
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        if not request.user.is_superuser and not request.user.is_company_admin:
+            return Response({"detail": "You don't have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        if not request.user.is_superuser and not request.user.is_company_admin:
+            return Response({"detail": "You don't have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
+        return super().partial_update(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         logger.info(f"Performing update for user {serializer.instance.username}")
