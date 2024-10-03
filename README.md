@@ -267,11 +267,13 @@ The backend provides the following API endpoints:
 - [ ] Add iOS and Android versions
 - [x] Add authentication
 - [ ] Add role based access control (only admin can add/edit/delete)
+- [ ] merge users and team members
 - [x] Add team member avatars
 - [ ] Add deployment
 - [ ] Add CI/CD
 - [ ] Add unit tests
 - [ ] Add more features!
+- [ ] Remove unistyles because it is not compatible with expo go
 - [ ] Improve Theming
 
 ## Contributing
