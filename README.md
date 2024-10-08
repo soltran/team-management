@@ -187,53 +187,114 @@ The backend API will be available at `http://localhost:8000/api/`.
 
 ### Frontend Setup
 
-1. Navigate to the frontend directory:
+1. Install Node.js and npm:
 
+   If you don't have Node.js and npm installed, follow these steps:
+
+   - Visit the [official Node.js website](https://nodejs.org/)
+   - Download and install the LTS (Long Term Support) version for your operating system
+   - This installation will include both Node.js and npm (Node Package Manager)
+
+   After installation, verify that both are installed correctly:
+
+   ```bash
+   node --version
+   npm --version
    ```
+
+   Note: npx comes bundled with npm version 5.2.0 and above.
+
+2. Navigate to the frontend directory:
+
+   ```bash
    cd team-management/frontend/team-mgmt-ui
    ```
 
-2. Install dependencies:
+3. Install dependencies:
 
-   ```
-   yarn install
-   ```
-
-   or
-
-   ```
+   ```bash
    npm install
    ```
 
-3. Set up environment variables:
+   or if you prefer using Yarn:
+
+   ```bash
+   yarn install
+   ```
+
+   Note: If you don't have Yarn installed and want to use it, you can install it globally with npm:
+
+   ```bash
+   npm install -g yarn
+   ```
+
+4. Set up environment variables:
 
    - Copy `.env.example` to `.env`
    - Update the `EXPO_PUBLIC_API_URL` in `.env` with your backend API URL (e.g., `http://localhost:8000`)
 
-4. Start the Expo development server:
+5. Start the Expo development server:
 
-   ```
+   ```bash
    npx expo start
    ```
 
-5. Login with the following credentials to see all users across all companies:
+   If you encounter any issues with npx, you can also use:
+
+   ```bash
+   npm run start
+   ```
+
+   or
+
+   ```bash
+   yarn start
+   ```
+
+6. Running the app:
+
+   - For web: Press 'w' in the terminal or click on "Run in web browser" in the Expo DevTools
+
+7. Login with the following credentials to see all users across all companies:
 
    - Username: `admin`
    - Password: `adminpass`
 
-6. Login with the following credentials to see only users in your company:
+8. Login with the following credentials to see only users in your company:
 
    - Username: `instawork_admin`
    - Password: `password`
 
-7. Login with the following credentials to see a regular user in your company:
+9. Login with the following credentials to see a regular user in your company:
 
    - Username: `instawork_adam`
    - Password: `password`
 
-8. Use the Expo Go app on your mobile device to scan the QR code, or run on an emulator.
-
 **NOTE: Right now, only the web version is working. iOS and Android versions are coming soon.**
+
+### Troubleshooting Frontend Setup
+
+If you encounter any issues during the frontend setup, try the following:
+
+1. Clear npm cache:
+
+   ```bash
+   npm cache clean --force
+   ```
+
+2. Delete the `node_modules` folder and `package-lock.json` file, then run `npm install` again.
+
+3. Ensure you're using a compatible Node.js version. You can use a tool like nvm (Node Version Manager) to switch between Node.js versions easily.
+
+4. If you're having issues with Expo, try clearing its cache:
+
+   ```bash
+   expo r -c
+   ```
+
+5. Make sure your development environment meets all the [Expo system requirements](https://docs.expo.dev/get-started/installation/#system-requirements).
+
+If problems persist, check the [Expo documentation](https://docs.expo.dev/) or reach out to the project maintainers for assistance.
 
 ## Available Scripts
 
