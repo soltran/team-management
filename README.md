@@ -39,7 +39,8 @@ The application allows users to manage team members with functionalities to:
   - Python 3.11
   - Django 4.x
   - Django REST Framework
-  - PostgreSQL (via Docker)
+  - PostgreSQL
+  - Docker
 
 - **Frontend:**
 
@@ -48,8 +49,8 @@ The application allows users to manage team members with functionalities to:
   - TypeScript
   - react-native-unistyles (for styling)
 
-  - **Tools:**
-  - Docker (for PostgreSQL)
+- **Tools:**
+  - Docker and Docker Compose
   - npm (Node Package Manager)
 
 ## Prerequisites
@@ -57,10 +58,49 @@ The application allows users to manage team members with functionalities to:
 Before you begin, ensure you have met the following requirements:
 
 - **Git:** For cloning the repository.
-- **Python 3.11:** For running the backend.
+- **Docker and Docker Compose:** For running the backend and database.
 - **Node.js (Latest LTS version):** For running the frontend.
 - **npm:** Comes with Node.js.
-- **Docker Desktop:** For running PostgreSQL in a Docker container.
+
+### Installing Docker and Docker Compose
+
+If you don't have Docker and Docker Compose installed, follow these steps:
+
+1. **Install Docker:**
+
+   - For macOS and Windows: Download and install Docker Desktop from [Docker's official website](https://www.docker.com/products/docker-desktop).
+   - For Linux: Follow the instructions for your specific distribution on [Docker's installation guide](https://docs.docker.com/engine/install/).
+
+2. **Install Docker Compose:**
+
+   - Docker Desktop for macOS and Windows should include Docker Compose by default. However, if you encounter issues:
+     - For macOS: You can install it via Homebrew:
+       ```bash
+       brew install docker-compose
+       ```
+     - For Windows: You can install it via Chocolatey:
+       ```
+       choco install docker-compose
+       ```
+   - For Linux:
+     ```bash
+     sudo curl -L "https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+     sudo chmod +x /usr/local/bin/docker-compose
+     ```
+
+3. **Verify the installation:**
+
+   ```bash
+   docker --version
+   docker-compose --version
+   ```
+
+4. **Troubleshooting:**
+   - If `docker-compose` command is not found on macOS or Windows after installing Docker Desktop:
+     - Ensure Docker Desktop is running.
+     - Try restarting your terminal or your computer.
+     - Check if the Docker Desktop installation added the necessary paths to your system's PATH environment variable.
+   - If issues persist, you can manually install Docker Compose using the method described for your operating system above.
 
 ## Getting Started
 
@@ -70,7 +110,9 @@ The project is organized as follows:
 
 ```
 team-management/
-├── backend/
+├── django/
+│   ├── Dockerfile
+│   ├── docker-compose.yml
 │   ├── manage.py
 │   ├── requirements.txt
 │   └── apps/
@@ -116,66 +158,29 @@ cd team-management
    cd team-management/django
    ```
 
-2. Create a virtual environment:
-
-   ```
-   python -m venv venv
-   ```
-
-3. Activate the virtual environment:
-
-   - On Windows:
-     ```
-     venv\Scripts\activate
-     ```
-   - On macOS and Linux:
-     ```
-     source venv/bin/activate
-     ```
-
-4. Install the required packages:
-
-   ```
-   pip install -r requirements.txt
-   ```
-
-5. Set up environment variables:
+2. Set up environment variables:
 
    - Copy `.env.example` to `.env`
-   - Update the `SECRET_KEY` and `DEBUG` in `.env`
+   - Update the environment variables in `.env` as needed
 
-6. Set Up the Database\*\*
+3. Build and start the Docker containers:
 
-We use PostgreSQL running in Docker.
-
-##### **Start PostgreSQL with Docker**
-
-```bash
-docker run --name postgres \
-  -e POSTGRES_PASSWORD=your_db_password \
-  -p 5432:5432 \
-  -d postgres
-```
-
-Replace `your_db_password` with a secure password.
-
-6. Apply migrations:
-
-```
-python manage.py makemigrations users
-python manage.py migrate users
-python manage.py migrate
-```
-
-7. Seed the database with initial data:
-
-```
-python manage.py setup_test_data
-```
-
-8. Start the Django development server:
    ```
-   python manage.py runserver
+   docker-compose up --build
+   ```
+
+   This command will build the Docker images and start the containers for both the Django application and the PostgreSQL database.
+
+4. Apply migrations:
+
+   ```
+   docker-compose exec web python manage.py migrate
+   ```
+
+5. Seed the database with initial data:
+
+   ```
+   docker-compose exec web python manage.py setup_test_data
    ```
 
 The backend API will be available at `http://localhost:8000/api/`.
@@ -203,7 +208,7 @@ The backend API will be available at `http://localhost:8000/api/`.
 3. Set up environment variables:
 
    - Copy `.env.example` to `.env`
-   - Update the `EXPO_PUBLIC_API_URL` in `.env` with your backend API URL (e.g., `http://localhost:8000/api`)
+   - Update the `EXPO_PUBLIC_API_URL` in `.env` with your backend API URL (e.g., `http://localhost:8000`)
 
 4. Start the Expo development server:
 
@@ -234,12 +239,12 @@ The backend API will be available at `http://localhost:8000/api/`.
 
 ### Backend
 
-In the `backend` directory, you can run:
+In the `django` directory, you can run:
 
-- `python manage.py runserver`: Starts the Django development server.
-- `python manage.py test`: Runs the backend tests.
-- `python manage.py makemigrations`: Creates new migrations based on changes detected to your models.
-- `python manage.py migrate`: Applies migrations to your database.
+- `docker-compose up`: Starts the Django development server and PostgreSQL database.
+- `docker-compose exec web python manage.py test`: Runs the backend tests.
+- `docker-compose exec web python manage.py makemigrations`: Creates new migrations based on changes detected to your models.
+- `docker-compose exec web python manage.py migrate`: Applies migrations to your database.
 
 ### Frontend
 
@@ -257,6 +262,7 @@ In the `frontend/team-mgmt-ui` directory, you can run:
   - Django
   - Django REST framework
   - PostgreSQL
+  - Docker
 
 - Frontend:
   - React Native
