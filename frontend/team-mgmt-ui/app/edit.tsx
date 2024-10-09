@@ -143,7 +143,14 @@ export default function EditPage() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Edit team member</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Edit team member</Text>
+          {isOwnProfile && (
+            <View style={styles.ownProfileBadge}>
+              <Text style={styles.ownProfileBadgeText}>Your Profile</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.subtitle}>
           Edit contact info, location and role.
         </Text>
@@ -261,10 +268,26 @@ const stylesheet = createStyleSheet({
   scrollContent: {
     padding: 16,
   },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginRight: 10,
+  },
+  ownProfileBadge: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  ownProfileBadgeText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   subtitle: {
     fontSize: 16,
