@@ -119,7 +119,7 @@ export const fetchTeamMember = async (id: string) => {
 
 export const updateTeamMember = async (id: string, data: any) => {
   const response = await fetchWithAuth(`/api/users/${id}/`, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(data),
   });
   if (!response.ok) {
