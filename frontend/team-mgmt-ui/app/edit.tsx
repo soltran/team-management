@@ -5,13 +5,14 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   Platform,
   Modal,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { createStyleSheet, useStyles } from "react-native-unistyles";
 import RadioButton from "../components/RadioButton";
+import Toast from "../components/Toast";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   fetchTeamMember,
@@ -44,6 +45,8 @@ export default function EditPage() {
   const { styles } = useStyles(stylesheet);
   const { user } = useAuth();
   const isOwnProfile = user?.id === id;
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastVisible, setToastVisible] = useState(false);
 
   useEffect(() => {
     fetchTeamMemberData();
@@ -55,19 +58,31 @@ export default function EditPage() {
       setTeamMember(data);
     } catch (error) {
       console.error("Error fetching team member:", error);
-      Alert.alert("Error", "Failed to fetch team member data");
+      showToast("Failed to fetch team member data");
     }
   }, [id, user]);
 
   const handleInputChange = (field: keyof typeof teamMember, value: string) => {
-    setTeamMember((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
+    if (canEdit) {
+      setTeamMember((prev) => ({ ...prev, [field]: value }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   };
+
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToastVisible(false);
+  }, []);
 
   const handleSave = async () => {
     try {
       const validatedData = teamMemberSchema.parse(teamMember);
       await updateTeamMember(id as string, validatedData);
+      showToast("Team member updated successfully");
       router.replace("/");
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -78,7 +93,9 @@ export default function EditPage() {
         setErrors(newErrors);
       } else {
         console.error("Error updating team member:", error);
-        Alert.alert("Error", "Failed to update team member");
+        const errorMessage =
+          error instanceof Error ? error.message : "An unknown error occurred";
+        showToast(`Failed to update team member: ${errorMessage}`);
       }
     }
   };
@@ -119,9 +136,7 @@ export default function EditPage() {
     user?.role === "superuser" ||
     isOwnProfile;
   const canDelete =
-    user?.role === "company_admin" ||
-    user?.role === "superuser" ||
-    isOwnProfile;
+    user?.role === "company_admin" || user?.role === "superuser";
   const canToggleRole =
     user?.role === "company_admin" || user?.role === "superuser";
 
@@ -137,7 +152,10 @@ export default function EditPage() {
         {["first_name", "last_name", "email", "phone_number"].map((field) => (
           <View key={field}>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input(!!errors[field]),
+                !canEdit && styles.disabledInput,
+              ]}
               placeholder={field
                 .split("_")
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -156,30 +174,33 @@ export default function EditPage() {
               editable={canEdit}
             />
             {errors[field] && (
-              <Text style={styles.errorText}>{errors[field]}</Text>
+              <Text style={styles.fieldErrorText}>{errors[field]}</Text>
             )}
           </View>
         ))}
 
-        <Text style={styles.sectionTitle}>Role</Text>
-        <View style={styles.radioGroup}>
-          {["regular", "admin"].map((roleOption) => (
-            <RadioButton
-              key={roleOption}
-              label={`${
-                roleOption.charAt(0).toUpperCase() + roleOption.slice(1)
-              } - ${
-                roleOption === "regular"
-                  ? "Can't delete members"
-                  : "Can delete members"
-              }`}
-              value={roleOption}
-              selectedValue={teamMember.role}
-              onSelect={(value) => handleInputChange("role", value)}
-              disabled={!canToggleRole}
-            />
-          ))}
-        </View>
+        {canToggleRole && (
+          <>
+            <Text style={styles.sectionTitle}>Role</Text>
+            <View style={styles.radioGroup}>
+              {["regular", "admin"].map((roleOption) => (
+                <RadioButton
+                  key={roleOption}
+                  label={`${
+                    roleOption.charAt(0).toUpperCase() + roleOption.slice(1)
+                  } - ${
+                    roleOption === "regular"
+                      ? "Can't delete members"
+                      : "Can delete members"
+                  }`}
+                  value={roleOption}
+                  selectedValue={teamMember.role}
+                  onSelect={(value) => handleInputChange("role", value)}
+                />
+              ))}
+            </View>
+          </>
+        )}
 
         {canEdit && (
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -223,6 +244,11 @@ export default function EditPage() {
           </Modal>
         )}
       </ScrollView>
+      <Toast
+        message={toastMessage}
+        isVisible={toastVisible}
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 }
@@ -251,20 +277,21 @@ const stylesheet = createStyleSheet({
     marginTop: 16,
     marginBottom: 8,
   },
-  input: {
+  input: (hasError: boolean) => ({
     height: 40,
-    borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-    paddingHorizontal: 8,
+    borderColor: hasError ? "#B71C1C" : "#cccccc",
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 15,
     backgroundColor: "white",
+  }),
+  disabledInput: {
+    backgroundColor: "#f0f0f0",
+    color: "#999",
   },
-  inputError: {
-    borderColor: "#FF3B30",
-  },
-  errorText: {
-    color: "#FF3B30",
+  fieldErrorText: {
+    color: "#B71C1C",
     fontSize: 12,
     marginTop: -12,
     marginBottom: 8,
@@ -344,5 +371,17 @@ const stylesheet = createStyleSheet({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+  },
+  serverErrorText: {
+    color: "#FF3B30",
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  errorContainer: {
+    backgroundColor: "#FFEBEE",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 16,
   },
 });
