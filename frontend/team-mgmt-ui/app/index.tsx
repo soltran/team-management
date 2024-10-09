@@ -32,8 +32,6 @@ export default function ListPage() {
   const { styles } = useStyles(stylesheet);
   const { user, signOut, checkAuthStatus } = useAuth();
 
-  console.log("user in index", user);
-
   const fetchTeamMembers = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -81,18 +79,25 @@ export default function ListPage() {
           style={styles.avatar}
         />
         <View style={styles.itemContent}>
-          <Text style={styles.name}>
-            {item.first_name} {item.last_name}
-            {item.role === "admin" && (
-              <Text style={styles.admin}> (admin)</Text>
+          <View style={styles.nameContainer}>
+            <Text style={styles.name}>
+              {item.first_name} {item.last_name}
+              {item.role === "admin" && (
+                <Text style={styles.admin}> (admin)</Text>
+              )}
+            </Text>
+            {user?.id === item.id.toString() && (
+              <View style={styles.ownProfileBadge}>
+                <Text style={styles.ownProfileBadgeText}>You</Text>
+              </View>
             )}
-          </Text>
+          </View>
           <Text style={styles.contactInfo}>{item.phone_number}</Text>
           <Text style={styles.contactInfo}>{item.email}</Text>
         </View>
       </TouchableOpacity>
     ),
-    [styles, router]
+    [styles, router, user]
   );
 
   if (isLoading) {
@@ -206,6 +211,23 @@ const stylesheet = createStyleSheet({
   },
   signOutText: {
     color: "white",
+    fontWeight: "bold",
+  },
+  nameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  ownProfileBadge: {
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  ownProfileBadgeText: {
+    color: "white",
+    fontSize: 12,
     fontWeight: "bold",
   },
 });
