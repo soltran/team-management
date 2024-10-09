@@ -1,6 +1,7 @@
 import uuid
 from rest_framework import serializers
 from .models import CustomUser, Company
+from rest_framework.exceptions import PermissionDenied
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,7 +15,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone_number', 'role', 'company']
-        read_only_fields = ['role']  # Role should only be changeable by admins
         extra_kwargs = {
             'password': {'write_only': True},  # Ensure password is write-only
             'company': {'read_only': True}  # Make company read-only
@@ -32,6 +32,16 @@ class CustomUserSerializer(serializers.ModelSerializer):
         if 'password' in validated_data:
             password = validated_data.pop('password')
             instance.set_password(password)
+        
+        # Check if role is being updated
+        if 'role' in validated_data:
+            # Assuming you have access to the request user
+            request_user = self.context['request'].user
+            if request_user.is_superuser or request_user.role == 'admin':
+                instance.role = validated_data.pop('role')
+            else:
+                raise PermissionDenied("Only admins can change user roles.")
+        
         return super().update(instance, validated_data)
 
     def generate_unique_username(self):
